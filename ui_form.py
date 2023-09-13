@@ -95,6 +95,7 @@ class Ui_Widget(object):
         font1.setPointSize(32)
         font1.setBold(True)
         self.lineEdit.setFont(font1)
+        self.lineEdit.setMaxLength(16)
         self.lineEdit.setStyleSheet(u"font-size: 32pt;\n"
                                     "border: none;")
         self.lineEdit.setAlignment(Qt.AlignRight | Qt.AlignTrailing | Qt.AlignVCenter)
