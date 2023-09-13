@@ -1,0 +1,34 @@
+QWidget {
+    color: white;
+    background-color: saddlebrown;
+    font-family: Rubik;
+    font-size: 16pt;
+    font-weight: 600;
+}
+
+/* Стиль для кнопок */
+QPushButton {
+    background-color: transparent;
+    border: 2px solid chocolate; /* Установите толщину и цвет границы */
+    border-radius: 10px; /* Радиус скругления углов */
+    padding: 10px 20px; /* Отступы внутри кнопки */
+}
+
+/* Стиль для кнопок при наведении */
+QPushButton:hover {
+    background-color: chocolate;
+    color: white; /* Измените цвет текста при наведении */
+}
+
+/* Стиль для кнопок при нажатии */
+QPushButton:pressed {
+    background-color: sandybrown;
+}
+
+/* Стиль для текстового поля */
+QLineEdit {
+    font-size: 32pt;
+    border: 2px solid chocolate;
+    border-radius: 10px;
+    padding: 5px;
+}
