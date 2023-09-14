@@ -1,20 +1,11 @@
 # -*- coding: utf-8 -*-
-
-################################################################################
-## Form generated from reading UI file 'form.ui'
-##
-## Created by: Qt User Interface Compiler version 6.5.2
-##
-## WARNING! All changes made in this file will be lost when recompiling UI file!
-################################################################################
-
 from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
                             QMetaObject, QObject, QPoint, QRect,
                             QSize, QTime, QUrl, Qt)
 from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
                            QFont, QFontDatabase, QGradient, QIcon,
                            QImage, QKeySequence, QLinearGradient, QPainter,
-                           QPalette, QPixmap, QRadialGradient, QTransform)
+                           QPalette, QPixmap, QRadialGradient, QTransform, QShortcut)
 from PySide6.QtWidgets import (QApplication, QGridLayout, QLabel, QLineEdit,
                                QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
@@ -308,9 +299,13 @@ class Ui_Widget(object):
         self.btn_0.setShortcut(QCoreApplication.translate("Widget", u"0", None))
         # endif // QT_CONFIG(shortcut)
         self.btn_div.setText(QCoreApplication.translate("Widget", u"/", None))
+        # if QT_CONFIG(shortcut)
+        self.btn_div.setShortcut(QCoreApplication.translate("Widget", u"/", None))
+        # endif // QT_CONFIG(shortcut)
         self.btn_calc.setText(QCoreApplication.translate("Widget", u"=", None))
         # if QT_CONFIG(shortcut)
-        self.btn_calc.setShortcut(QCoreApplication.translate("Widget", u"=", None))
+        for sc in ('=', 'Enter', 'Return'):
+            QShortcut(sc, self.btn_calc).activated.connect(self.btn_calc.animateClick)
         # endif // QT_CONFIG(shortcut)
         self.btn_3.setText(QCoreApplication.translate("Widget", u"3", None))
         # if QT_CONFIG(shortcut)
@@ -322,6 +317,10 @@ class Ui_Widget(object):
         self.btn_6.setShortcut(QCoreApplication.translate("Widget", u"6", None))
         # endif // QT_CONFIG(shortcut)
         self.btn_point.setText(QCoreApplication.translate("Widget", u".", None))
+        # if QT_CONFIG(shortcut)
+        for sc in (',', '.'):
+            QShortcut(sc, self.btn_point).activated.connect(self.btn_point.animateClick)
+        # endif // QT_CONFIG(shortcut)
         self.btn_2.setText(QCoreApplication.translate("Widget", u"2", None))
         # if QT_CONFIG(shortcut)
         self.btn_2.setShortcut(QCoreApplication.translate("Widget", u"2", None))
@@ -331,6 +330,9 @@ class Ui_Widget(object):
         self.btn_8.setShortcut(QCoreApplication.translate("Widget", u"8", None))
         # endif // QT_CONFIG(shortcut)
         self.btn_9.setText(QCoreApplication.translate("Widget", u"9", None))
+        # if QT_CONFIG(shortcut)
+        self.btn_9.setShortcut(QCoreApplication.translate("Widget", u"9", None))
+        # endif // QT_CONFIG(shortcut)
         self.btn_cl.setText("")
         self.btn_sub.setText(QCoreApplication.translate("Widget", u"\u2212", None))
         # if QT_CONFIG(shortcut)

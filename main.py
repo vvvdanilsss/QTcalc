@@ -6,16 +6,12 @@ from operator import add, sub, mul, truediv
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QFontDatabase
 
-# Important:
-# You need to run the following command to generate the ui_form.py file
-#     pyside6-uic form.ui -o ui_form.py, or
-#     pyside2-uic form.ui -o ui_form.py
 from ui_form import Ui_Widget
 
 sings = {
     '+': add,
-    '-': sub,
-    '*': mul,
+    '−': sub,
+    '×': mul,
     '/': truediv
 }
 
@@ -31,9 +27,12 @@ class Calculator(QWidget):
         super().__init__(parent)
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
-        self.val_max_len = self.ui.lineEdit.maxLength()
 
-        QFontDatabase.addApplicationFont(("fonts/Rubik-Regular.ttf"))
+        self.val_max_len = self.ui.lineEdit.maxLength()
+        self.val = self.ui.lineEdit
+        self.val_temp_ex = self.ui.label
+
+        QFontDatabase.addApplicationFont("fonts/Rubik-Regular.ttf")
 
         # Отображение цифр в lineEdit
         self.ui.btn_0.clicked.connect(self.add_dig)
@@ -56,15 +55,14 @@ class Calculator(QWidget):
 
         # Математика
         self.ui.btn_calc.clicked.connect(self.calc)
-        self.ui.btn_plus.clicked.connect(lambda: self.add_sign('+'))
-        self.ui.btn_sub.clicked.connect(lambda: self.add_sign('-'))
-        self.ui.btn_mul.clicked.connect(lambda: self.add_sign('*'))
-        self.ui.btn_div.clicked.connect(lambda: self.add_sign('/'))
+        self.ui.btn_plus.clicked.connect(self.add_sign)
+        self.ui.btn_sub.clicked.connect(self.add_sign)
+        self.ui.btn_mul.clicked.connect(self.add_sign)
+        self.ui.btn_div.clicked.connect(self.add_sign)
 
     def add_dig(self) -> None:
         """
         Добавляет цифры в строку ввода
-        :return:
         """
         self.rm_err()
         self.clear_temp_ex_if_eq()
@@ -75,52 +73,50 @@ class Calculator(QWidget):
         )
 
         if btn.objectName() in dig_btn:
-            if self.ui.lineEdit.text() == '0':
-                self.ui.lineEdit.setText(btn.text())
+            if self.val.text() == '0':
+                self.val.setText(btn.text())
             else:
-                self.ui.lineEdit.setText(self.ui.lineEdit.text() + btn.text())
+                self.val.setText(self.val.text() + btn.text())
 
             self.reg_val_font_size()
 
     def clear_all(self) -> None:
         """
         Чистит строку ввода и временное выражение сверху
-        :return:
         """
         self.rm_err()
-        self.ui.lineEdit.setText('0')
+        self.val.setText('0')
         self.reg_val_font_size()
-        self.ui.label.clear()
+        self.val_temp_ex.clear()
 
     def delete(self) -> None:
         """
         Чистит только строку вывода
-        :return:
         """
         self.rm_err()
         self.clear_temp_ex_if_eq()
-        self.ui.lineEdit.setText('0')
+        self.val.setText('0')
         self.reg_val_font_size()
 
     def add_point(self) -> None:
         """
         Добавляет точку в строку ввода
-        :return:
         """
         self.clear_temp_ex_if_eq()
 
-        if '.' not in self.ui.lineEdit.text():
-            self.ui.lineEdit.setText(self.ui.lineEdit.text() + '.')
+        if '.' not in self.val.text():
+            self.val.setText(self.val.text() + '.')
             self.reg_val_font_size()
 
-    def add_temp_ex(self, sign: str) -> None:
+    def add_temp_ex(self) -> None:
         """
         Добавление временного выражения
-        :param sign: Знак математической операции
-        :return:
         """
-        if not self.ui.label.text() or self.get_sign() == '=':
-            self.ui.label.setText(f'{self.rm_zeros(self.ui.lineEdit.text())} {sign} ')
+        btn = self.sender()
+        val = self.rm_zeros(self.val.text())
+
+        if not self.val_temp_ex.text() or self.get_sign() == '=':
+            self.val_temp_ex.setText(f'{val} {btn.text()} ')
             self.reg_val_temp_ex_font_size()
             self.delete()
 
@@ -140,7 +136,7 @@ class Calculator(QWidget):
         Получение числа из строки ввода
         :return: Число
         """
-        val = self.ui.lineEdit.text().strip('.')
+        val = self.val.text().strip('.')
         return float(val) if '.' in val else int(val)
 
     def get_val_temp_ex(self) -> Union[float, int, None]:
@@ -148,8 +144,8 @@ class Calculator(QWidget):
         Получение числа из временного выражения
         :return: Число или ничего
         """
-        if self.ui.label.text():
-            val_temp_ex = self.ui.label.text().strip('.').split()[0]
+        if self.val_temp_ex.text():
+            val_temp_ex = self.val_temp_ex.text().strip('.').split()[0]
             return float(val_temp_ex) if '.' in val_temp_ex else int(val_temp_ex)
 
     def get_sign(self) -> Optional[str]:
@@ -157,62 +153,58 @@ class Calculator(QWidget):
         Получение знака из временного выражения
         :return: Знак математической операции
         """
-        if self.ui.label.text():
-            return self.ui.label.text().strip('.').split()[-1]
+        if self.val_temp_ex.text():
+            return self.val_temp_ex.text().strip('.').split()[-1]
 
     def calc(self) -> Optional[str]:
         """
         Вычисляет
         :return: Результат вычисления или ничего
         """
-        val = self.ui.lineEdit.text()
-        val_temp_ex = self.ui.label.text()
+        try:
+            res = self.rm_zeros(
+                str(sings[self.get_sign()](self.get_val_temp_ex(), self.get_val()))
+            )
+            self.val_temp_ex.setText(f'{self.val_temp_ex.text()}{self.rm_zeros(self.val.text())} =')
+            self.val.setText(res)
+            self.reg_val_temp_ex_font_size()
+            self.reg_val_font_size()
+            return res
+        except KeyError:
+            pass
+        except ZeroDivisionError:
+            if self.get_val_temp_ex() == 0:
+                self.show_err(err_undefined)
+            else:
+                self.show_err(err_zero_div)
 
-        if val_temp_ex:
-            try:
-                res = self.rm_zeros(
-                    str(sings[self.get_sign()](self.get_val_temp_ex(), self.get_val()))
-                )
-                self.ui.label.setText(val_temp_ex + self.rm_zeros(val) + ' = ')
-                self.reg_val_temp_ex_font_size()
-                self.ui.lineEdit.setText(res)
-                self.reg_val_font_size()
-                return res
-            except KeyError:
-                pass
-            except ZeroDivisionError:
-                if self.get_val_temp_ex() == 0:
-                    self.show_err(err_undefined)
-                else:
-                    self.show_err(err_zero_div)
-
-    def add_sign(self, sign: str):
+    def add_sign(self) -> None:
         """
         Добавляет в математическое выражение знак математической операции
-        :param sign: Знак математической операции
-        :return:
         """
-        val_temp_ex = self.ui.label.text()
+        btn = self.sender()
 
-        if not val_temp_ex:
-            self.add_temp_ex(sign)
-        elif self.get_sign() != sign:
+        if not self.val_temp_ex.text():
+            self.add_temp_ex()
+        elif self.get_sign() != btn.text():
             if self.get_sign() == '=':
-                self.add_temp_ex(sign)
+                self.add_temp_ex()
             else:
-                self.ui.label.setText(f'{val_temp_ex[:-2]}{sign} ')
+                self.val_temp_ex.setText(f'{self.val_temp_ex.text()[:-2]}{btn.text()} ')
         else:
-            self.ui.label.setText(f'{self.calc()} {sign}')
+            try:
+                self.val_temp_ex.setText(f'{self.calc()} {btn.text()} ')
+            except TypeError:
+                pass
 
         self.reg_val_temp_ex_font_size()
 
-    def set_neg(self):
+    def set_neg(self) -> None:
         """
         Меняет знак у числа
-        :return:
         """
         self.clear_temp_ex_if_eq()
-        val = self.ui.lineEdit.text()
+        val = self.val.text()
 
         if '-' not in val:
             if val != '0':
@@ -221,27 +213,26 @@ class Calculator(QWidget):
             val = val[1:]
 
         if len(val) == self.val_max_len + 1 and '-' in val:
-            self.ui.lineEdit.setMaxLength(self.val_max_len + 1)
+            self.val.setMaxLength(self.val_max_len + 1)
         else:
-            self.ui.lineEdit.setMaxLength(self.val_max_len)
+            self.val.setMaxLength(self.val_max_len)
 
-        self.ui.lineEdit.setText(val)
+        self.val.setText(val)
         self.reg_val_font_size()
 
     def backspace(self) -> None:
         """
         Удаляет последнюю цифру в строке ввода
-        :return:
         """
         self.rm_err()
         self.clear_temp_ex_if_eq()
-        val = self.ui.lineEdit.text()
+        val = self.val.text()
 
         if len(val) != 1:
             if len(val) == 2 and '-' in val:
-                self.ui.lineEdit.setText('0')
+                self.val.setText('0')
             else:
-                self.ui.lineEdit.setText(val[:-1])
+                self.val.setText(val[:-1])
             self.reg_val_font_size()
         else:
             self.delete()
@@ -249,7 +240,6 @@ class Calculator(QWidget):
     def clear_temp_ex_if_eq(self) -> None:
         """
         Удаляет временное выражение, если в нем есть знак равно
-        :return:
         """
         if self.get_sign() == '=':
             self.ui.label.clear()
@@ -258,21 +248,19 @@ class Calculator(QWidget):
         """
         Вывод ошибки
         :param err: Ошибка
-        :return:
         """
-        self.ui.lineEdit.setMaxLength(len(err))
-        self.ui.lineEdit.setText(err)
+        self.val.setMaxLength(len(err))
+        self.val.setText(err)
         self.reg_val_font_size()
         self.dis_btn(True)
 
     def rm_err(self) -> None:
         """
         Удаляет ошибку
-        :return:
         """
-        if self.ui.lineEdit.text() in (err_zero_div, err_undefined):
-            self.ui.lineEdit.setMaxLength(self.val_max_len)
-            self.ui.lineEdit.setText('0')
+        if self.val.text() in (err_zero_div, err_undefined):
+            self.val.setMaxLength(self.val_max_len)
+            self.val.setText('0')
             self.reg_val_font_size()
             self.dis_btn(False)
 
@@ -280,7 +268,6 @@ class Calculator(QWidget):
         """
         Блокирует/деблокирует кнопки при ошибке
         :param dis: Блокирует/деблокирует
-        :return:
         """
         self.ui.btn_calc.setDisabled(dis)
         self.ui.btn_plus.setDisabled(dis)
@@ -297,7 +284,6 @@ class Calculator(QWidget):
         """
         Меняет цвет при блокировке кнопок
         :param color: Устанавливаемый цвет
-        :return:
         """
         self.ui.btn_calc.setStyleSheet(color)
         self.ui.btn_plus.setStyleSheet(color)
@@ -308,46 +294,44 @@ class Calculator(QWidget):
         self.ui.btn_point.setStyleSheet(color)
 
     def get_val_text_width(self) -> int:
-        return self.ui.lineEdit.fontMetrics().boundingRect(self.ui.lineEdit.text()).width()
+        return self.val.fontMetrics().boundingRect(self.val.text()).width()
 
     def get_val_temp_ex_text_width(self) -> int:
-        return self.ui.label.fontMetrics().boundingRect(self.ui.label.text()).width()
+        return self.val_temp_ex.fontMetrics().boundingRect(self.val_temp_ex.text()).width()
 
     def reg_val_font_size(self) -> None:
         """
         Регулирует размер шрифта в строке ввода
-        :return:
         """
         font_size = def_val_font_size
-        while self.get_val_text_width() > self.ui.lineEdit.width() - 16:
+        while self.get_val_text_width() > self.val.width() - 16:
             font_size -= 1
-            self.ui.lineEdit.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.val.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
 
         font_size = 1
-        while self.get_val_text_width() < self.ui.lineEdit.width() - 48:
+        while self.get_val_text_width() < self.val.width() - 48:
             if font_size == 32:
                 break
 
             font_size += 1
-            self.ui.lineEdit.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.val.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
 
     def reg_val_temp_ex_font_size(self) -> None:
         """
         Регулирует размер шрифта в строке временного выражения
-        :return:
         """
         font_size = def_font_size
-        while self.get_val_temp_ex_text_width() > self.ui.label.width() - 8:
+        while self.get_val_temp_ex_text_width() > self.val_temp_ex.width() - 8:
             font_size -= 1
-            self.ui.label.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.val_temp_ex.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
 
         font_size = 1
-        while self.get_val_temp_ex_text_width() < self.ui.label.width() - 48:
-            if font_size == 32:
+        while self.get_val_temp_ex_text_width() < self.val_temp_ex.width() - 48:
+            if font_size == 16:
                 break
 
             font_size += 1
-            self.ui.label.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.val_temp_ex.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
 
     def resizeEvent(self, event) -> None:
         self.reg_val_font_size()
