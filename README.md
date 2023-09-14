@@ -1,6 +1,6 @@
 # Калькулятор на Python, сдеаланный на основе фреймворка QTCreator и с использованием библиотеки PySide6
 
-![Вид калькулятора](src/calc_with_python/pictures/Снимок экрана 2023-09-14 в 18.25.13.png)
+![Вид калькулятора](src/calc_with_python/pictures/template.png)
 
 ## Требования
 
