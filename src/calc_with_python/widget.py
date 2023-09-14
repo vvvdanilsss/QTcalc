@@ -15,6 +15,9 @@ from PySide6.QtCore import (QCoreApplication, QDate, QDateTime, QLocale,
 from form_ui import Ui_Widget
 from PySide6 import QtWidgets 
 
+
+
+
 class Widget(QWidget):
     
     def __init__(self, parent=None):
@@ -49,6 +52,7 @@ class Widget(QWidget):
         self.ui.pushButton_ravn.clicked.connect(lambda: self.result())
 
     # Продолжает функциональность при нажатии дальнейших кнопок
+    
     @QtCore.Slot()
 
     def number(self, entry_text) -> None:
