@@ -8,18 +8,21 @@ from PySide6.QtGui import QFontDatabase
 
 from ui_form import Ui_Widget
 
-sings = {
+# Dictionary of operators
+operators = {
     '+': add,
     '−': sub,
     '×': mul,
     '/': truediv
 }
 
-err_zero_div = 'Деление на ноль!'
-err_undefined = 'Результат не определён'
+# Error messages
+err_zero_division = 'Division by zero!'
+err_undefined_result = 'Result is undefined'
 
-def_font_size = 16
-def_val_font_size = 32
+# Default font sizes
+default_font_size = 16
+default_value_font_size = 32
 
 
 class Calculator(QWidget):
@@ -28,262 +31,266 @@ class Calculator(QWidget):
         self.ui = Ui_Widget()
         self.ui.setupUi(self)
 
-        self.val_max_len = self.ui.lineEdit.maxLength()
-        self.val = self.ui.lineEdit
-        self.val_temp_ex = self.ui.label
+        # Maximum input length
+        self.max_input_length = self.ui.lineEdit.maxLength()
+        self.input_field = self.ui.lineEdit
+        self.temp_expression_label = self.ui.label
 
+        # Load font
         QFontDatabase.addApplicationFont("fonts/Rubik-Regular.ttf")
 
-        # Отображение цифр в lineEdit
-        self.ui.btn_0.clicked.connect(self.add_dig)
-        self.ui.btn_1.clicked.connect(self.add_dig)
-        self.ui.btn_2.clicked.connect(self.add_dig)
-        self.ui.btn_3.clicked.connect(self.add_dig)
-        self.ui.btn_4.clicked.connect(self.add_dig)
-        self.ui.btn_5.clicked.connect(self.add_dig)
-        self.ui.btn_6.clicked.connect(self.add_dig)
-        self.ui.btn_7.clicked.connect(self.add_dig)
-        self.ui.btn_8.clicked.connect(self.add_dig)
-        self.ui.btn_9.clicked.connect(self.add_dig)
+        # Connect events to buttons
+        # Numbers
+        self.ui.btn_0.clicked.connect(self.add_digit)
+        self.ui.btn_1.clicked.connect(self.add_digit)
+        self.ui.btn_2.clicked.connect(self.add_digit)
+        self.ui.btn_3.clicked.connect(self.add_digit)
+        self.ui.btn_4.clicked.connect(self.add_digit)
+        self.ui.btn_5.clicked.connect(self.add_digit)
+        self.ui.btn_6.clicked.connect(self.add_digit)
+        self.ui.btn_7.clicked.connect(self.add_digit)
+        self.ui.btn_8.clicked.connect(self.add_digit)
+        self.ui.btn_9.clicked.connect(self.add_digit)
 
-        # Выполнение кнопок действий
+        # Action buttons
         self.ui.btn_cl.clicked.connect(self.clear_all)
         self.ui.btn_del.clicked.connect(self.delete)
-        self.ui.btn_point.clicked.connect(self.add_point)
-        self.ui.btn_neg.clicked.connect(self.set_neg)
+        self.ui.btn_point.clicked.connect(self.add_decimal_point)
+        self.ui.btn_neg.clicked.connect(self.toggle_negative)
         self.ui.btn_back.clicked.connect(self.backspace)
 
-        # Математика
-        self.ui.btn_calc.clicked.connect(self.calc)
-        self.ui.btn_plus.clicked.connect(self.add_sign)
-        self.ui.btn_sub.clicked.connect(self.add_sign)
-        self.ui.btn_mul.clicked.connect(self.add_sign)
-        self.ui.btn_div.clicked.connect(self.add_sign)
+        # Math buttons
+        self.ui.btn_calc.clicked.connect(self.calculate)
+        self.ui.btn_plus.clicked.connect(self.add_operator)
+        self.ui.btn_sub.clicked.connect(self.add_operator)
+        self.ui.btn_mul.clicked.connect(self.add_operator)
+        self.ui.btn_div.clicked.connect(self.add_operator)
 
-    def add_dig(self) -> None:
+    def add_digit(self) -> None:
         """
-        Добавляет цифры в строку ввода
+        Adds digits to the input field
         """
-        self.rm_err()
-        self.clear_temp_ex_if_eq()
+        self.remove_error()
+        self.clear_temp_expression_if_equals()
         btn = self.sender()
-        dig_btn = (
+        digit_buttons = (
             'btn_0', 'btn_1', 'btn_2', 'btn_3', 'btn_4',
             'btn_5', 'btn_6', 'btn_7', 'btn_8', 'btn_9'
         )
 
-        if btn.objectName() in dig_btn:
-            if self.val.text() == '0':
-                self.val.setText(btn.text())
+        if btn.objectName() in digit_buttons:
+            if self.input_field.text() == '0':
+                self.input_field.setText(btn.text())
             else:
-                self.val.setText(self.val.text() + btn.text())
+                self.input_field.setText(self.input_field.text() + btn.text())
 
-            self.reg_val_font_size()
+            self.adjust_value_font_size()
 
     def clear_all(self) -> None:
         """
-        Чистит строку ввода и временное выражение сверху
+        Clears the input field and the temporary expression label
         """
-        self.rm_err()
-        self.val.setText('0')
-        self.reg_val_font_size()
-        self.val_temp_ex.clear()
+        self.remove_error()
+        self.input_field.setText('0')
+        self.adjust_value_font_size()
+        self.temp_expression_label.clear()
 
     def delete(self) -> None:
         """
-        Чистит только строку вывода
+        Clears only the input field
         """
-        self.rm_err()
-        self.clear_temp_ex_if_eq()
-        self.val.setText('0')
-        self.reg_val_font_size()
+        self.remove_error()
+        self.clear_temp_expression_if_equals()
+        self.input_field.setText('0')
+        self.adjust_value_font_size()
 
-    def add_point(self) -> None:
+    def add_decimal_point(self) -> None:
         """
-        Добавляет точку в строку ввода
+        Adds a decimal point to the input field
         """
-        self.clear_temp_ex_if_eq()
+        self.clear_temp_expression_if_equals()
 
-        if '.' not in self.val.text():
-            self.val.setText(self.val.text() + '.')
-            self.reg_val_font_size()
+        if '.' not in self.input_field.text():
+            self.input_field.setText(self.input_field.text() + '.')
+            self.adjust_value_font_size()
 
-    def add_temp_ex(self) -> None:
+    def add_temp_expression(self) -> None:
         """
-        Добавление временного выражения
+        Adds a temporary expression
         """
         btn = self.sender()
-        val = self.rm_zeros(self.val.text())
+        value = self.remove_trailing_zeros(self.input_field.text())
 
-        if not self.val_temp_ex.text() or self.get_sign() == '=':
-            self.val_temp_ex.setText(f'{val} {btn.text()} ')
-            self.reg_val_temp_ex_font_size()
+        if not self.temp_expression_label.text() or self.get_operator() == '=':
+            self.temp_expression_label.setText(f'{value} {btn.text()} ')
+            self.adjust_temp_expression_font_size()
             self.delete()
 
     @staticmethod
-    def rm_zeros(val: str) -> str:
+    def remove_trailing_zeros(value: str) -> str:
         """
-        Удаляет незначащие нули
-        :param val: Вещественное число
-        :return: Вещественное число без нулей после точки
+        Removes trailing zeros from a floating-point number
+        :param value: Floating-point number
+        :return: Floating-point number without trailing zeros after the decimal point
         """
-        val = str(float(val))
-        form_val = val.rstrip('0').rstrip('.') if '.' in val else val
-        return form_val
+        value = str(float(value))
+        formatted_value = value.rstrip('0').rstrip('.') if '.' in value else value
+        return formatted_value
 
-    def get_val(self) -> Union[float, int]:
+    def get_value(self) -> Union[float, int]:
         """
-        Получение числа из строки ввода
-        :return: Число
+        Gets the number from the input field
+        :return: Number
         """
-        val = self.val.text().strip('.')
-        return float(val) if '.' in val else int(val)
+        value = self.input_field.text().strip('.')
+        return float(value) if '.' in value else int(value)
 
-    def get_val_temp_ex(self) -> Union[float, int, None]:
+    def get_value_from_temp_expression(self) -> Union[float, int, None]:
         """
-        Получение числа из временного выражения
-        :return: Число или ничего
+        Gets the number from the temporary expression
+        :return: Number or None
         """
-        if self.val_temp_ex.text():
-            val_temp_ex = self.val_temp_ex.text().strip('.').split()[0]
-            return float(val_temp_ex) if '.' in val_temp_ex else int(val_temp_ex)
+        if self.temp_expression_label.text():
+            value_temp_expression = self.temp_expression_label.text().strip('.').split()[0]
+            return float(value_temp_expression) if '.' in value_temp_expression else int(value_temp_expression)
 
-    def get_sign(self) -> Optional[str]:
+    def get_operator(self) -> Optional[str]:
         """
-        Получение знака из временного выражения
-        :return: Знак математической операции
+        Gets the operator from the temporary expression
+        :return: Mathematical operator
         """
-        if self.val_temp_ex.text():
-            return self.val_temp_ex.text().strip('.').split()[-1]
+        if self.temp_expression_label.text():
+            return self.temp_expression_label.text().strip('.').split()[-1]
 
-    def calc(self) -> Optional[str]:
+    def calculate(self) -> Optional[str]:
         """
-        Вычисляет
-        :return: Результат вычисления или ничего
+        Calculates the result
+        :return: Result or None
         """
         try:
-            res = self.rm_zeros(
-                str(sings[self.get_sign()](self.get_val_temp_ex(), self.get_val()))
+            result = self.remove_trailing_zeros(
+                str(operators[self.get_operator()](self.get_value_from_temp_expression(), self.get_value()))
             )
-            self.val_temp_ex.setText(f'{self.val_temp_ex.text()}{self.rm_zeros(self.val.text())} =')
-            self.val.setText(res)
-            self.reg_val_temp_ex_font_size()
-            self.reg_val_font_size()
-            return res
+            self.temp_expression_label.setText(
+                f'{self.temp_expression_label.text()}{self.remove_trailing_zeros(self.input_field.text())} =')
+            self.input_field.setText(result)
+            self.adjust_temp_expression_font_size()
+            self.adjust_value_font_size()
+            return result
         except KeyError:
             pass
         except ZeroDivisionError:
-            if self.get_val_temp_ex() == 0:
-                self.show_err(err_undefined)
+            if self.get_value_from_temp_expression() == 0:
+                self.show_error(err_undefined_result)
             else:
-                self.show_err(err_zero_div)
+                self.show_error(err_zero_division)
 
-    def add_sign(self) -> None:
+    def add_operator(self) -> None:
         """
-        Добавляет в математическое выражение знак математической операции
+        Adds a mathematical operator to the expression
         """
         btn = self.sender()
 
-        if not self.val_temp_ex.text():
-            self.add_temp_ex()
-        elif self.get_sign() != btn.text():
-            if self.get_sign() == '=':
-                self.add_temp_ex()
+        if not self.temp_expression_label.text():
+            self.add_temp_expression()
+        elif self.get_operator() != btn.text():
+            if self.get_operator() == '=':
+                self.add_temp_expression()
             else:
-                self.val_temp_ex.setText(f'{self.val_temp_ex.text()[:-2]}{btn.text()} ')
+                self.temp_expression_label.setText(f'{self.temp_expression_label.text()[:-2]}{btn.text()} ')
         else:
             try:
-                self.val_temp_ex.setText(f'{self.calc()} {btn.text()} ')
+                self.temp_expression_label.setText(f'{self.calculate()} {btn.text()} ')
             except TypeError:
                 pass
 
-        self.reg_val_temp_ex_font_size()
+        self.adjust_temp_expression_font_size()
 
-    def set_neg(self) -> None:
+    def toggle_negative(self) -> None:
         """
-        Меняет знак у числа
+        Toggles the sign of the number
         """
-        self.clear_temp_ex_if_eq()
-        val = self.val.text()
+        self.clear_temp_expression_if_equals()
+        value = self.input_field.text()
 
-        if '-' not in val:
-            if val != '0':
-                val = '-' + val
+        if '-' not in value:
+            if value != '0':
+                value = '-' + value
         else:
-            val = val[1:]
+            value = value[1:]
 
-        if len(val) == self.val_max_len + 1 and '-' in val:
-            self.val.setMaxLength(self.val_max_len + 1)
+        if len(value) == self.max_input_length + 1 and '-' in value:
+            self.input_field.setMaxLength(self.max_input_length + 1)
         else:
-            self.val.setMaxLength(self.val_max_len)
+            self.input_field.setMaxLength(self.max_input_length)
 
-        self.val.setText(val)
-        self.reg_val_font_size()
+        self.input_field.setText(value)
+        self.adjust_value_font_size()
 
     def backspace(self) -> None:
         """
-        Удаляет последнюю цифру в строке ввода
+        Deletes the last digit in the input field
         """
-        self.rm_err()
-        self.clear_temp_ex_if_eq()
-        val = self.val.text()
+        self.remove_error()
+        self.clear_temp_expression_if_equals()
+        value = self.input_field.text()
 
-        if len(val) != 1:
-            if len(val) == 2 and '-' in val:
-                self.val.setText('0')
+        if len(value) != 1:
+            if len(value) == 2 and '-' in value:
+                self.input_field.setText('0')
             else:
-                self.val.setText(val[:-1])
-            self.reg_val_font_size()
+                self.input_field.setText(value[:-1])
+            self.adjust_value_font_size()
         else:
             self.delete()
 
-    def clear_temp_ex_if_eq(self) -> None:
+    def clear_temp_expression_if_equals(self) -> None:
         """
-        Удаляет временное выражение, если в нем есть знак равно
+        Clears the temporary expression if it contains an equals sign
         """
-        if self.get_sign() == '=':
+        if self.get_operator() == '=':
             self.ui.label.clear()
 
-    def show_err(self, err: str) -> None:
+    def show_error(self, error: str) -> None:
         """
-        Вывод ошибки
-        :param err: Ошибка
+        Displays an error
+        :param error: Error message
         """
-        self.val.setMaxLength(len(err))
-        self.val.setText(err)
-        self.reg_val_font_size()
-        self.dis_btn(True)
+        self.input_field.setMaxLength(len(error))
+        self.input_field.setText(error)
+        self.adjust_value_font_size()
+        self.disable_buttons(True)
 
-    def rm_err(self) -> None:
+    def remove_error(self) -> None:
         """
-        Удаляет ошибку
+        Removes the error message
         """
-        if self.val.text() in (err_zero_div, err_undefined):
-            self.val.setMaxLength(self.val_max_len)
-            self.val.setText('0')
-            self.reg_val_font_size()
-            self.dis_btn(False)
+        if self.input_field.text() in (err_zero_division, err_undefined_result):
+            self.input_field.setMaxLength(self.max_input_length)
+            self.input_field.setText('0')
+            self.adjust_value_font_size()
+            self.disable_buttons(False)
 
-    def dis_btn(self, dis: bool) -> None:
+    def disable_buttons(self, disable: bool) -> None:
         """
-        Блокирует/деблокирует кнопки при ошибке
-        :param dis: Блокирует/деблокирует
+        Disables/enables buttons when there's an error
+        :param disable: Disables/enables
         """
-        self.ui.btn_calc.setDisabled(dis)
-        self.ui.btn_plus.setDisabled(dis)
-        self.ui.btn_sub.setDisabled(dis)
-        self.ui.btn_mul.setDisabled(dis)
-        self.ui.btn_div.setDisabled(dis)
-        self.ui.btn_neg.setDisabled(dis)
-        self.ui.btn_point.setDisabled(dis)
+        self.ui.btn_calc.setDisabled(disable)
+        self.ui.btn_plus.setDisabled(disable)
+        self.ui.btn_sub.setDisabled(disable)
+        self.ui.btn_mul.setDisabled(disable)
+        self.ui.btn_div.setDisabled(disable)
+        self.ui.btn_neg.setDisabled(disable)
+        self.ui.btn_point.setDisabled(disable)
 
-        color = 'color: sandybrown' if dis else 'color: white'
-        self.change_btn_color(color)
+        color = 'color: sandybrown' if disable else 'color: white'
+        self.change_button_color(color)
 
-    def change_btn_color(self, color: str) -> None:
+    def change_button_color(self, color: str) -> None:
         """
-        Меняет цвет при блокировке кнопок
-        :param color: Устанавливаемый цвет
+        Changes button color when buttons are disabled
+        :param color: Color to set
         """
         self.ui.btn_calc.setStyleSheet(color)
         self.ui.btn_plus.setStyleSheet(color)
@@ -293,49 +300,49 @@ class Calculator(QWidget):
         self.ui.btn_neg.setStyleSheet(color)
         self.ui.btn_point.setStyleSheet(color)
 
-    def get_val_text_width(self) -> int:
-        return self.val.fontMetrics().boundingRect(self.val.text()).width()
+    def get_input_text_width(self) -> int:
+        return self.input_field.fontMetrics().boundingRect(self.input_field.text()).width()
 
-    def get_val_temp_ex_text_width(self) -> int:
-        return self.val_temp_ex.fontMetrics().boundingRect(self.val_temp_ex.text()).width()
+    def get_temp_expression_text_width(self) -> int:
+        return self.temp_expression_label.fontMetrics().boundingRect(self.temp_expression_label.text()).width()
 
-    def reg_val_font_size(self) -> None:
+    def adjust_value_font_size(self) -> None:
         """
-        Регулирует размер шрифта в строке ввода
+        Adjusts the font size in the input field
         """
-        font_size = def_val_font_size
-        while self.get_val_text_width() > self.val.width() - 16:
+        font_size = default_value_font_size
+        while self.get_input_text_width() > self.input_field.width() - 16:
             font_size -= 1
-            self.val.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.input_field.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
 
         font_size = 1
-        while self.get_val_text_width() < self.val.width() - 48:
+        while self.get_input_text_width() < self.input_field.width() - 48:
             if font_size == 32:
                 break
 
             font_size += 1
-            self.val.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
+            self.input_field.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
 
-    def reg_val_temp_ex_font_size(self) -> None:
+    def adjust_temp_expression_font_size(self) -> None:
         """
-        Регулирует размер шрифта в строке временного выражения
+        Adjusts the font size in the temporary expression label
         """
-        font_size = def_font_size
-        while self.get_val_temp_ex_text_width() > self.val_temp_ex.width() - 8:
+        font_size = default_font_size
+        while self.get_temp_expression_text_width() > self.temp_expression_label.width() - 8:
             font_size -= 1
-            self.val_temp_ex.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
+            self.temp_expression_label.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
 
         font_size = 1
-        while self.get_val_temp_ex_text_width() < self.val_temp_ex.width() - 48:
+        while self.get_temp_expression_text_width() < self.temp_expression_label.width() - 48:
             if font_size == 16:
                 break
 
             font_size += 1
-            self.val_temp_ex.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
+            self.temp_expression_label.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
 
     def resizeEvent(self, event) -> None:
-        self.reg_val_font_size()
-        self.reg_val_temp_ex_font_size()
+        self.adjust_value_font_size()
+        self.adjust_temp_expression_font_size()
 
 
 if __name__ == "__main__":
