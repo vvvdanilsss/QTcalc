@@ -22,6 +22,8 @@
 2. Перейдите в папку src, а затем в папку calc_with_python:
 
 ```cd src```
+"\n"
+
 ```cd calc_with_python```
 
 3. Запустите калькулятор:
