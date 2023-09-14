@@ -1,28 +1,13 @@
 # This Python file uses the following encoding: utf-8
 import sys
 from typing import Union, Optional
-from operator import add, sub, mul, truediv
 
 from PySide6.QtWidgets import QApplication, QWidget
 from PySide6.QtGui import QFontDatabase
 
 from ui_form import Ui_Widget
-
-# Dictionary of operators
-operators = {
-    '+': add,
-    '−': sub,
-    '×': mul,
-    '/': truediv
-}
-
-# Error messages
-err_zero_division = 'Division by zero!'
-err_undefined_result = 'Result is undefined'
-
-# Default font sizes
-default_font_size = 16
-default_value_font_size = 32
+from constants import OPERATORS, ERR_ZERO_DIVISION, ERR_UNDEFINED_RESULT, \
+    DEFAULT_FONT_SIZE, DEFAULT_VALUE_FONT_SIZE, DIGIT_BUTTONS
 
 
 class Calculator(QWidget):
@@ -73,12 +58,8 @@ class Calculator(QWidget):
         self.remove_error()
         self.clear_temp_expression_if_equals()
         btn = self.sender()
-        digit_buttons = (
-            'btn_0', 'btn_1', 'btn_2', 'btn_3', 'btn_4',
-            'btn_5', 'btn_6', 'btn_7', 'btn_8', 'btn_9'
-        )
 
-        if btn.objectName() in digit_buttons:
+        if btn.objectName() in DIGIT_BUTTONS:
             if self.input_field.text() == '0':
                 self.input_field.setText(btn.text())
             else:
@@ -169,7 +150,7 @@ class Calculator(QWidget):
         """
         try:
             result = self.remove_trailing_zeros(
-                str(operators[self.get_operator()](self.get_value_from_temp_expression(), self.get_value()))
+                str(OPERATORS[self.get_operator()](self.get_value_from_temp_expression(), self.get_value()))
             )
             self.temp_expression_label.setText(
                 f'{self.temp_expression_label.text()}{self.remove_trailing_zeros(self.input_field.text())} =')
@@ -181,9 +162,9 @@ class Calculator(QWidget):
             pass
         except ZeroDivisionError:
             if self.get_value_from_temp_expression() == 0:
-                self.show_error(err_undefined_result)
+                self.show_error(ERR_UNDEFINED_RESULT)
             else:
-                self.show_error(err_zero_division)
+                self.show_error(ERR_ZERO_DIVISION)
 
     def add_operator(self) -> None:
         """
@@ -265,7 +246,7 @@ class Calculator(QWidget):
         """
         Removes the error message
         """
-        if self.input_field.text() in (err_zero_division, err_undefined_result):
+        if self.input_field.text() in (ERR_ZERO_DIVISION, ERR_UNDEFINED_RESULT):
             self.input_field.setMaxLength(self.max_input_length)
             self.input_field.setText('0')
             self.adjust_value_font_size()
@@ -310,14 +291,14 @@ class Calculator(QWidget):
         """
         Adjusts the font size in the input field
         """
-        font_size = default_value_font_size
+        font_size = DEFAULT_VALUE_FONT_SIZE
         while self.get_input_text_width() > self.input_field.width() - 16:
             font_size -= 1
             self.input_field.setStyleSheet(f'font-size: {str(font_size)}pt; border: none;')
 
         font_size = 1
         while self.get_input_text_width() < self.input_field.width() - 48:
-            if font_size == 32:
+            if font_size == DEFAULT_VALUE_FONT_SIZE:
                 break
 
             font_size += 1
@@ -327,14 +308,14 @@ class Calculator(QWidget):
         """
         Adjusts the font size in the temporary expression label
         """
-        font_size = default_font_size
+        font_size = DEFAULT_FONT_SIZE
         while self.get_temp_expression_text_width() > self.temp_expression_label.width() - 8:
             font_size -= 1
             self.temp_expression_label.setStyleSheet(f'font-size: {str(font_size)}pt; color: sandybrown;')
 
         font_size = 1
         while self.get_temp_expression_text_width() < self.temp_expression_label.width() - 48:
-            if font_size == 16:
+            if font_size == DEFAULT_FONT_SIZE:
                 break
 
             font_size += 1
