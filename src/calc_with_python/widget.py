@@ -79,12 +79,20 @@ class Widget(QWidget):
     
     def result(self) -> None:
 
+        if self.ui.label.text() == 'SyntaxError':
+            self.ui.label.setText(QCoreApplication.translate("Widget", u"0", None))
+            
         try:
             self.ui.label.setText(f'{eval(self.ui.label.text())}')
-        except SyntaxError:
-            self.ui.label.setText(QCoreApplication.translate("Widget", u"SyntaxError", None))
+        
         except ZeroDivisionError:
             self.ui.label.setText(QCoreApplication.translate("Widget", u"MathError", None))
+
+        except SyntaxError:
+            self.ui.label.setText(QCoreApplication.translate("Widget", u"SyntaxError", None))
+        
+
+        
         pass
 
 
